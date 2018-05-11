@@ -56,3 +56,5 @@ D:\nezha\nezha_forcebar\UdpServer\bin\Debug\UdpServer.pdb
 D:\nezha\nezha_forcebar\UdpServer\bin\Debug\MccDaq.dll
 D:\nezha\nezha_forcebar\UdpServer\bin\Debug\MccDaq.xml
 D:\nezha\nezha_forcebar\UdpServer\obj\x86\Debug\UdpServer.csprojResolveAssemblyReference.cache
+D:\Luoqi\Code\local_nersa\nersa_forcebar\UdpServer\obj\x86\Debug\UdpServer.exe
+D:\Luoqi\Code\local_nersa\nersa_forcebar\UdpServer\obj\x86\Debug\UdpServer.pdb

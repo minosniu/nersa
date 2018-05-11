@@ -177,58 +177,60 @@ public class MoveRacket : MonoBehaviour
 
     void FixedUpdate()
     {
-        init_data = ChooseMode("real");
+		if (TestClick.flag) {
+			print ("emg");
+			init_data = ChooseMode("real");
 
-        if (init_data == 0)
-            bayesfilter = 0;
-        else
-            //bayesfilter = (float)(myBayesian.UpdateEst(init_data / 100));
-        {
-            bayesfilter = (float)(myBayesian.UpdateEst(init_data * 80000 / 200));//200    0-1
-            init_data = init_data * 80000;
-        }
+			if (init_data == 0)
+				bayesfilter = 0;
+			else
+				//bayesfilter = (float)(myBayesian.UpdateEst(init_data / 100));
+			{
+				bayesfilter = (float)(myBayesian.UpdateEst(init_data * 80000 / 200));//200    0-1
+				init_data = init_data * 80000;
+			}
 
-        //emgfilter = EmgAverage(10, Math.Abs(myEmg.emgData[0]));
+			//emgfilter = EmgAverage(10, Math.Abs(myEmg.emgData[0]));
 
-        //emgfilter = EmgFilter(myEmg.emgData[0]);
-        emgfilter = EmgFilter(init_data);
-        emgfilter = emgfilter * 50000;
+			//emgfilter = EmgFilter(myEmg.emgData[0]);
+			emgfilter = EmgFilter(init_data);
+			emgfilter = emgfilter * 50000;
 
-        try
-        {
-            // Sends a message to the host to which you have connected.
-            Byte[] sendBytes = Encoding.ASCII.GetBytes(bayesfilter.ToString());
+			try
+			{
+				// Sends a message to the host to which you have connected.
+				Byte[] sendBytes = Encoding.ASCII.GetBytes(bayesfilter.ToString());
 
-            nanoTecClient.Send(sendBytes, sendBytes.Length);
+				nanoTecClient.Send(sendBytes, sendBytes.Length);
 
-            // Blocks until a message returns on this socket from a remote host.
-            Byte[] receiveBytes = nanoTecClient.Receive(ref RemoteIpEndPoint);
-            string stringData = Encoding.ASCII.GetString(receiveBytes);      
+				// Blocks until a message returns on this socket from a remote host.
+				Byte[] receiveBytes = nanoTecClient.Receive(ref RemoteIpEndPoint);
+				string stringData = Encoding.ASCII.GetString(receiveBytes);      
 
-        }
+			}
 
-        catch (Exception e)
-        {
-            Console.WriteLine(e.ToString());
-        }
+			catch (Exception e)
+			{
+				Console.WriteLine(e.ToString());
+			}
 
 
-        GetComponent<Rigidbody2D>().position = new Vector2(0, bayesfilter*25);
+			GetComponent<Rigidbody2D>().position = new Vector2(0, bayesfilter*25);
 
-        //obj.transform.position = new Vector2(0, barHeight);
-        //print(barHeight * 1000000);
+			//obj.transform.position = new Vector2(0, barHeight);
+			//print(barHeight * 1000000);
 
-        listToHoldData.Add(barHeight);
-        //float t = Time.time;
-        listToHoldTime.Add(Time.time);
+			listToHoldData.Add(barHeight);
+			//float t = Time.time;
+			listToHoldTime.Add(Time.time);
 
-        listToHoldInit.Add(init_data);
-        listToHoldemgfilter.Add(emgfilter);
-        listToHoldbayesfilter.Add(bayesfilter);
-        listToHoldstoredata.Add(init_data);
-        //Vector2 mousePosition = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
-        //GetComponent<Rigidbody2D>().position = new Vector2(0, mousePosition.y);
-
+			listToHoldInit.Add(init_data);
+			listToHoldemgfilter.Add(emgfilter);
+			listToHoldbayesfilter.Add(bayesfilter);
+			listToHoldstoredata.Add(init_data);
+			//Vector2 mousePosition = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+			//GetComponent<Rigidbody2D>().position = new Vector2(0, mousePosition.y);
+		}
     }
 
 
