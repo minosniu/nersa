@@ -48,7 +48,7 @@ class MyUDPHandler(socketserver.BaseRequestHandler):
                 
                     
         clientInput = float(req)
-        force = round(0 + 100 * clientInput)
+        force = round(0 + 500 * clientInput)
         velocity = round(50 + 500 * clientInput)
         print(force)
         

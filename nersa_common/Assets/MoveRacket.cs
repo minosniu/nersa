@@ -178,7 +178,7 @@ public class MoveRacket : MonoBehaviour
     void FixedUpdate()
     {
 		if (TestClick.flag) {
-			print ("emg");
+			//print ("emg");
 			init_data = ChooseMode("real");
 
 			if (init_data == 0)
@@ -250,9 +250,9 @@ public class MoveRacket : MonoBehaviour
         }
 
         string data = "";
-        StreamWriter writer = new StreamWriter("test.csv", false, Encoding.UTF8);
-        //writer.WriteLine(string.Format("{0},{1}", "Time", "Pressure"));
-        writer.WriteLine(string.Format("{0},{1},{2},{3},{4}", "Time", "Pressure", "Init_data","EmgFilter","BayesFilter"));
+        StreamWriter writer = new StreamWriter("EMG_test.csv", false, Encoding.UTF8);
+		//writer.WriteLine(string.Format("{0},{1}", "Time", "BarHeight"));
+        writer.WriteLine(string.Format("{0},{1},{2},{3},{4}", "Time", "BarHeight", "Init_data","EmgFilter","BayesFilter"));
 
         using (var e1 = listToHoldTime.GetEnumerator())
         using (var e2 = listToHoldData.GetEnumerator())
