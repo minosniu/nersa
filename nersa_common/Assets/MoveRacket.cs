@@ -7,6 +7,7 @@ using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using System.Diagnostics;
+using UnityEngine.UI;
 //using System.math;
 
 using System.IO;
@@ -14,8 +15,11 @@ using System.Threading.Tasks;
 
 public class MoveRacket : MonoBehaviour
 {
-
+	public InputField inputvariate1;
+	public InputField inputvariate2;
     public float speed = 30;
+	public float input1 = 30;      
+	public float input2 = -1;     //给input1、input2设定初始值
 
     byte[] data1 = new byte[1024];
 
@@ -178,6 +182,16 @@ public class MoveRacket : MonoBehaviour
     void FixedUpdate()
     {
 		if (TestClick.flag) {
+			
+			if (EnterClick.verify) {
+				input1 = float.Parse(inputvariate1.text);    // string to float(字符串转浮点型)
+				input2 = float.Parse(inputvariate2.text);
+				EnterClick.verify = false;
+			}
+			//print (input1);
+			//print (input2);
+
+
 			//print ("emg");
 			init_data = ChooseMode("real");
 
@@ -186,7 +200,7 @@ public class MoveRacket : MonoBehaviour
 			else
 				//bayesfilter = (float)(myBayesian.UpdateEst(init_data / 100));
 			{
-				bayesfilter = (float)(myBayesian.UpdateEst(init_data * 80000 / 200));//200    0-1
+				bayesfilter = (float)(myBayesian.UpdateEst(init_data * 80000 / 100));//200    0-1
 				init_data = init_data * 80000;
 			}
 
@@ -215,7 +229,8 @@ public class MoveRacket : MonoBehaviour
 			}
 
 
-			GetComponent<Rigidbody2D>().position = new Vector2(0, bayesfilter*25);
+			float barHeight = bayesfilter * input1 + input2;	//EMG信号条零点位置设置  
+			GetComponent<Rigidbody2D>().position = new Vector2(0, barHeight);
 
 			//obj.transform.position = new Vector2(0, barHeight);
 			//print(barHeight * 1000000);
