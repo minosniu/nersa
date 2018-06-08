@@ -18,7 +18,7 @@ public class MoveRacket : MonoBehaviour
 	public InputField inputvariate1;
 	public InputField inputvariate2;
     public float speed = 30;
-	public float input1 = 30;      
+	public float input1 = 20;      
 	public float input2 = -1;     //给input1、input2设定初始值
 
     byte[] data1 = new byte[1024];
@@ -33,10 +33,10 @@ public class MoveRacket : MonoBehaviour
     EndPoint Remote1;
 
     int recv1;
-    float barHeight = 0.0f;
     float init_data = 0.0f;
     float emgfilter = 0.0f;
     float bayesfilter = 0.0f;
+	float emg_send = 0.0f;
 
     static readonly object lockObject = new object();
     string stringData = "0";
@@ -50,7 +50,7 @@ public class MoveRacket : MonoBehaviour
     public Renderer rend;
 
 
-    List<float> listToHoldData;
+	List<float> listToHoldemg_send;
     List<float> listToHoldTime;
     List<float> listToHoldInit;
     List<float> listToHoldemgfilter;
@@ -95,7 +95,7 @@ public class MoveRacket : MonoBehaviour
             Console.WriteLine(e.ToString());
         }
 
-        listToHoldData = new List<float>();
+		listToHoldemg_send = new List<float>();
         listToHoldTime = new List<float>();
         listToHoldInit = new List<float>();
         listToHoldemgfilter = new List<float>();
@@ -201,6 +201,8 @@ public class MoveRacket : MonoBehaviour
 				//bayesfilter = (float)(myBayesian.UpdateEst(init_data / 100));
 			{
 				bayesfilter = (float)(myBayesian.UpdateEst(init_data * 80000 / 100));//200    0-1
+				//bayesfilter = Mathf.Max(0,(float)(myBayesian.UpdateEst(init_data * 80000 / input1)) + input2);// 200    0-1
+				emg_send = Mathf.Max(0, bayesfilter * input1 + input2);
 				init_data = init_data * 80000;
 			}
 
@@ -213,7 +215,7 @@ public class MoveRacket : MonoBehaviour
 			try
 			{
 				// Sends a message to the host to which you have connected.
-				Byte[] sendBytes = Encoding.ASCII.GetBytes(bayesfilter.ToString());
+				Byte[] sendBytes = Encoding.ASCII.GetBytes(emg_send.ToString());
 
 				nanoTecClient.Send(sendBytes, sendBytes.Length);
 
@@ -229,13 +231,13 @@ public class MoveRacket : MonoBehaviour
 			}
 
 
-			float barHeight = bayesfilter * input1 + input2;	//EMG信号条零点位置设置  
-			GetComponent<Rigidbody2D>().position = new Vector2(0, barHeight);
+			//float barHeight = bayesfilter * input1 + input2;	//EMG信号条零点位置设置  
+			GetComponent<Rigidbody2D>().position = new Vector2(0, emg_send);
 
 			//obj.transform.position = new Vector2(0, barHeight);
 			//print(barHeight * 1000000);
 
-			listToHoldData.Add(barHeight);
+			listToHoldemg_send.Add(emg_send);
 			//float t = Time.time;
 			listToHoldTime.Add(Time.time);
 
@@ -267,10 +269,10 @@ public class MoveRacket : MonoBehaviour
         string data = "";
         StreamWriter writer = new StreamWriter("EMG_test.csv", false, Encoding.UTF8);
 		//writer.WriteLine(string.Format("{0},{1}", "Time", "BarHeight"));
-        writer.WriteLine(string.Format("{0},{1},{2},{3},{4}", "Time", "BarHeight", "Init_data","EmgFilter","BayesFilter"));
+		writer.WriteLine(string.Format("{0},{1},{2},{3},{4}", "Time", "emg_send", "Init_data","EmgFilter","BayesFilter"));
 
         using (var e1 = listToHoldTime.GetEnumerator())
-        using (var e2 = listToHoldData.GetEnumerator())
+		using (var e2 = listToHoldemg_send.GetEnumerator())
         using (var e3 = listToHoldInit.GetEnumerator())
         using (var e4 = listToHoldemgfilter.GetEnumerator())
         using (var e5 = listToHoldbayesfilter.GetEnumerator())
