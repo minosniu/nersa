@@ -21,16 +21,24 @@ public class MoveRacket : MonoBehaviour
 	public float input1 = 20;      
 	public float input2 = -1;     //给input1、input2设定初始值
 
-    byte[] data1 = new byte[1024];
 
-    Socket server1 = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);  //实现 Berkeley 套接字接口
-    public IPEndPoint sender1 = new IPEndPoint(IPAddress.Any, 0);  //定义服务端
+    //Socket server1 = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);  //实现 Berkeley 套接字接口
+    //public IPEndPoint sender1 = new IPEndPoint(IPAddress.Any, 0);  //定义服务端
 
-    UdpClient nanoTecClient = new UdpClient();
+    UdpClient nanoTecClient = new UdpClient();         // nanotec motor
     //IPEndPoint object will allow us to read datagrams sent from any source.
-    IPEndPoint RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
+    IPEndPoint RemoteIpEndPoint1 = new IPEndPoint(IPAddress.Any, 0);
+
+	UdpClient neuromorphicClient = new UdpClient();     //neuromorphic system
+	IPEndPoint RemoteIpEndPoint2 = new IPEndPoint(IPAddress.Any, 0);
 
     EndPoint Remote1;
+	EndPoint Remote2;
+
+
+	float muscle_force = 0.0f;
+	int n = 0;
+	double Lce = 0.0;
 
     int recv1;
     float init_data = 0.0f;
@@ -39,7 +47,6 @@ public class MoveRacket : MonoBehaviour
 	float emg_send = 0.0f;
 
     static readonly object lockObject = new object();
-    string stringData = "0";
     bool precessData = false;
 
     EmgModule myEmg = new EmgModule();
@@ -56,6 +63,9 @@ public class MoveRacket : MonoBehaviour
     List<float> listToHoldemgfilter;
     List<float> listToHoldbayesfilter;
     List<float> listToHoldstoredata;
+
+    List<double> listToHoldLce;
+    List<float> listToHoldmuscle_force;
 
 
     float[] a1 = { 1f, 1.7600f, 1.1829f, 0.2781f };
@@ -87,7 +97,8 @@ public class MoveRacket : MonoBehaviour
         Console.WriteLine("This is a Client, host name is {0}", Dns.GetHostName());//获取本地计算机的主机名
         try
         {
-            nanoTecClient.Connect("127.0.0.1", 20001);
+			nanoTecClient.Connect("127.0.0.1", 20001); 
+			neuromorphicClient.Connect("192.168.1.115", 5000);
         }
 
         catch (Exception e)
@@ -101,6 +112,9 @@ public class MoveRacket : MonoBehaviour
         listToHoldemgfilter = new List<float>();
         listToHoldbayesfilter = new List<float>();
         listToHoldstoredata = new List<float>();
+
+        listToHoldLce = new List<double>();
+        listToHoldmuscle_force = new List<float>();
 
         obj = GameObject.Find("MoveRacket");
 
@@ -212,41 +226,61 @@ public class MoveRacket : MonoBehaviour
 			emgfilter = EmgFilter(init_data);
 			emgfilter = emgfilter * 50000;
 
-			try
-			{
-				// Sends a message to the host to which you have connected.
-				Byte[] sendBytes = Encoding.ASCII.GetBytes(emg_send.ToString());
 
-				nanoTecClient.Send(sendBytes, sendBytes.Length);
-
-				// Blocks until a message returns on this socket from a remote host.
-				Byte[] receiveBytes = nanoTecClient.Receive(ref RemoteIpEndPoint);
-				string stringData = Encoding.ASCII.GetString(receiveBytes);      
-
-			}
-
-			catch (Exception e)
-			{
-				Console.WriteLine(e.ToString());
-			}
+            //for (double Lce = 1.0; Lce < 2.0; Lce += 0.01)
+                try
+                {
+					Lce = Math.Sin(n * Math.PI / 180);    // n= angle
+					n++;
+					Lce = Math.Abs(Lce) + 1;
 
 
-			//float barHeight = bayesfilter * input1 + input2;	//EMG信号条零点位置设置  
-			GetComponent<Rigidbody2D>().position = new Vector2(0, emg_send);
+                    // Sends a message to the host to which you have connected.
+				    Byte[] sendBytes = Encoding.ASCII.GetBytes(emg_send.ToString());
+					Byte[] sendBytes1 = Encoding.ASCII.GetBytes(muscle_force.ToString());
+                    Byte[] sendBytes2 = Encoding.ASCII.GetBytes(Lce.ToString());
 
-			//obj.transform.position = new Vector2(0, barHeight);
-			//print(barHeight * 1000000);
+				    //nanoTecClient.Send(sendBytes, sendBytes.Length);    //send EMG to nanotec motor
+				    nanoTecClient.Send(sendBytes1, sendBytes1.Length);  //send muscle force to nanotec motor
+				    neuromorphicClient.Send(sendBytes2, sendBytes2.Length);  //send Lce to neuromorphic system
 
-			listToHoldemg_send.Add(emg_send);
-			//float t = Time.time;
-			listToHoldTime.Add(Time.time);
+                    // Blocks until a message returns on this socket from a remote host.
+                    Byte[] receiveBytes1 = nanoTecClient.Receive(ref RemoteIpEndPoint1);
+                    Byte[] receiveBytes2 = neuromorphicClient.Receive(ref RemoteIpEndPoint2);
 
-			listToHoldInit.Add(init_data);
-			listToHoldemgfilter.Add(emgfilter);
-			listToHoldbayesfilter.Add(bayesfilter);
-			listToHoldstoredata.Add(init_data);
-			//Vector2 mousePosition = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
-			//GetComponent<Rigidbody2D>().position = new Vector2(0, mousePosition.y);
+                    string stringData = Encoding.ASCII.GetString(receiveBytes1);
+                    string recMsg = Encoding.ASCII.GetString(receiveBytes2);
+                    muscle_force = float.Parse(recMsg);
+
+                }
+
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
+                }
+
+
+                //float barHeight = bayesfilter * input1 + input2;	//EMG信号条零点位置设置  
+			    GetComponent<Rigidbody2D>().position = new Vector2(0, emg_send);
+
+                //obj.transform.position = new Vector2(0, barHeight);
+                //print(barHeight * 1000000);
+
+                listToHoldemg_send.Add(emg_send);
+                //float t = Time.time;
+                listToHoldTime.Add(Time.time);
+
+                listToHoldInit.Add(init_data);
+                listToHoldemgfilter.Add(emgfilter);
+                listToHoldbayesfilter.Add(bayesfilter);
+                listToHoldstoredata.Add(init_data);
+
+                listToHoldLce.Add(Lce);
+                listToHoldmuscle_force.Add(muscle_force);
+                //Vector2 mousePosition = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+                //GetComponent<Rigidbody2D>().position = new Vector2(0, mousePosition.y);
+
+
 		}
     }
 
@@ -260,6 +294,7 @@ public class MoveRacket : MonoBehaviour
         try
         {
             nanoTecClient.Close();
+			neuromorphicClient.Close();
         }
         catch (Exception e)
         {
@@ -299,14 +334,14 @@ public class MoveRacket : MonoBehaviour
         }
 
         writer.Write(data);
-
         writer.Close();
 
 
-        string store = "";
-       
+
+
+        string store = "";      
         StreamWriter writer1 = new StreamWriter("storedata.csv", false, Encoding.UTF8);
-        //writer.WriteLine(string.Format("{0},{1}", "Time", "Pressure"));
+        //writer1.WriteLine(string.Format("{0},{1}", "Time", "Pressure"));
        
         using (var e1 = listToHoldstoredata.GetEnumerator())
         {
@@ -322,8 +357,36 @@ public class MoveRacket : MonoBehaviour
         }
 
         writer1.Write(store);
-
         writer1.Close();
+
+
+
+
+		string data2 = "";
+		StreamWriter writer2 = new StreamWriter("neuromorphicdata.csv", false, Encoding.UTF8);
+        writer2.WriteLine(string.Format("{0},{1},{2}", "Time", "Lce", "muscle_force"));
+
+        using (var e1 = listToHoldTime.GetEnumerator())
+        using (var e2 = listToHoldLce.GetEnumerator())
+        using (var e3 = listToHoldmuscle_force.GetEnumerator())
+        {
+            while (e1.MoveNext() && e2.MoveNext() && e3.MoveNext())
+            {
+                var item1 = e1.Current;
+                var item2 = e2.Current;
+                var item3 = e3.Current;
+
+                data2 += item1.ToString();
+                data2 += ",";
+                data2 += item2.ToString();
+                data2 += ",";
+                data2 += item3.ToString();
+                data2 += "\n";
+            }
+        }
+
+		writer2.Write(data2);
+		writer2.Close();
 
     }
 
