@@ -73,7 +73,7 @@ namespace UDP
             Console.WriteLine(Encoding.ASCII.GetString(data, 0, recv));
 
             //客户机连接成功后，发送信息
-            string welcome = "你好 ! ";
+            string welcome = " M ";
 
             //字符串与字节数组相互转换
             data = Encoding.ASCII.GetBytes(welcome);

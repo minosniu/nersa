@@ -19,7 +19,8 @@ public class MoveRacket : MonoBehaviour
 	public InputField inputvariate2;
     public float speed = 30;
 	public float input1 = 20;      
-	public float input2 = -1;     //给input1、input2设定初始值
+	public float input2 = 0;     //给input1、input2设定初始值
+	int count = 0;
 
 
     //Socket server1 = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);  //实现 Berkeley 套接字接口
@@ -35,16 +36,19 @@ public class MoveRacket : MonoBehaviour
     EndPoint Remote1;
 	EndPoint Remote2;
 
-
+	//float emg_neuromorphic = 0.0f;
 	float muscle_force = 0.0f;
 	int n = 0;
-	double Lce = 0.0;
+	double Lce = 0;
+	float Lce1 = 0.0f;
+
 
     int recv1;
     float init_data = 0.0f;
     float emgfilter = 0.0f;
     float bayesfilter = 0.0f;
 	float emg_send = 0.0f;
+	float emg_neuromorphic = 0.0f;
 
     static readonly object lockObject = new object();
     bool precessData = false;
@@ -193,7 +197,7 @@ public class MoveRacket : MonoBehaviour
 
 
 
-    void FixedUpdate()
+    void FixedUpdate()         // 设为0.01s
     {
 		if (TestClick.flag) {
 			
@@ -230,19 +234,37 @@ public class MoveRacket : MonoBehaviour
             //for (double Lce = 1.0; Lce < 2.0; Lce += 0.01)
                 try
                 {
-					Lce = Math.Sin(n * Math.PI / 180);    // n= angle
-					n++;
-					Lce = Math.Abs(Lce) + 1;
+				   Lce = Math.Sin(n * Math.PI / 180);    // n= angle
+				   n++;
+				   Lce = Math.Abs(Lce) + 1;
+				   float Lce1 = (float)Lce;
 
 
-                    // Sends a message to the host to which you have connected.
-				    Byte[] sendBytes = Encoding.ASCII.GetBytes(emg_send.ToString());
-					Byte[] sendBytes1 = Encoding.ASCII.GetBytes(muscle_force.ToString());
-                    Byte[] sendBytes2 = Encoding.ASCII.GetBytes(Lce.ToString());
+				   
 
-				    //nanoTecClient.Send(sendBytes, sendBytes.Length);    //send EMG to nanotec motor
-				    nanoTecClient.Send(sendBytes1, sendBytes1.Length);  //send muscle force to nanotec motor
-				    neuromorphicClient.Send(sendBytes2, sendBytes2.Length);  //send Lce to neuromorphic system
+                   // Sends a message to the host to which you have connected.
+				   Byte[] sendBytes = Encoding.ASCII.GetBytes(emg_send.ToString());
+				   Byte[] sendBytes1 = Encoding.ASCII.GetBytes(emg_neuromorphic.ToString());
+                   Byte[] sendBytes2 = Encoding.ASCII.GetBytes(Lce1.ToString());
+
+
+				   neuromorphicClient.Send(sendBytes2, sendBytes2.Length);  //send Lce to neuromorphic system
+
+
+                   if (NeuromorphicClick.enter_neuromorphic)
+                   {
+
+					  nanoTecClient.Send(sendBytes1, sendBytes1.Length);    //send EMG + muscle force to nanotec motor
+
+                   }
+
+                   else
+                   {
+                      nanoTecClient.Send(sendBytes, sendBytes.Length);  //send EMG to nanotec motor
+                   }
+
+
+
 
                     // Blocks until a message returns on this socket from a remote host.
                     Byte[] receiveBytes1 = nanoTecClient.Receive(ref RemoteIpEndPoint1);
@@ -251,6 +273,10 @@ public class MoveRacket : MonoBehaviour
                     string stringData = Encoding.ASCII.GetString(receiveBytes1);
                     string recMsg = Encoding.ASCII.GetString(receiveBytes2);
                     muscle_force = float.Parse(recMsg);
+					
+					emg_neuromorphic = emg_send + muscle_force;
+
+				    //print(count++);
 
                 }
 
