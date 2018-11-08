@@ -6,13 +6,10 @@ using System.Linq;
 using System.Text;
 using System.Net;
 using System.Net.Sockets;
-
 using System.IO;
-
 
 public class MoveRacket_force : MonoBehaviour
 {
-
     public float speed = 30;
 
     byte[] data = new byte[1024];
@@ -24,21 +21,29 @@ public class MoveRacket_force : MonoBehaviour
     EndPoint Remote;
     int recv;
 
-
     static readonly object lockObject = new object();
     string returnData = "";
-    bool precessData = false;
-
 
     public GameObject obj;
     public Renderer rend;
 
 	private float IDrecord;
+	private float collisionrecord2;  //  bool
+	public int levelcount;
+	AllList[] Levels;
+	public List<float> FromZeroIDtime;
+	public int IDframe;
+	//public bool isShow;
+	public float barForceInMilliNewton;
 
-    List<float> listToHoldData;
-    List<float> listToHoldTime;
-	List<float> listToHoldID;
 
+	void CreateList(int n)
+	{
+		for (int i = 0; i < n; i++)
+		{
+			Levels[i] = new AllList();
+		}
+	}
 
     void Start()
     {
@@ -46,7 +51,7 @@ public class MoveRacket_force : MonoBehaviour
         IPEndPoint ip = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 8001);
 
 
-        string welcome = "你好! ";
+        string welcome = "Hello";
         data = Encoding.ASCII.GetBytes(welcome);  //数据类型转换
         server.SendTo(data, data.Length, SocketFlags.None, ip);  //发送给指定服务端
 
@@ -54,15 +59,15 @@ public class MoveRacket_force : MonoBehaviour
         recv = server.ReceiveFrom(data, ref Remote);//获取客户端，获取客户端数据，用引用给客户端赋值 
         data = new byte[1024];
 
-        listToHoldData = new List<float>();
-        listToHoldTime = new List<float>();
-		listToHoldID = new List<float>(); 
+		levelcount = TargetRacket_force.levelnumber;  
+		//Debug.Log("f"+ levelcount); 
 
-        //thread = new Thread(new ThreadStart(ThreadMethod));
-        //thread.Start();
+		Levels = new AllList[levelcount];
+		CreateList(levelcount);
 
         obj = GameObject.Find("MoveRacket_force");
         //rend = obj.GetComponent<Renderer>();
+
     }
 
 
@@ -70,6 +75,9 @@ public class MoveRacket_force : MonoBehaviour
     {
 		
 		IDrecord = TargetRacket_force.ID;
+		//collisionrecord = TargetRacket_force.collision;
+		collisionrecord2 = Prohibited_area.collision2;
+		IDframe = TargetRacket_force.time_flag;
 		//Debug.Log (IDrecord);
 
 		if (TestClick.flag) {
@@ -80,20 +88,28 @@ public class MoveRacket_force : MonoBehaviour
 			stringData = Encoding.ASCII.GetString(data, 0, recv);//字节数组转换为字符串  //输出接收到的数据 
 			Console.WriteLine(stringData);
 
-			float barForceInMilliNewton = (float)Convert.ToInt32(stringData);
-			float v = Input.GetAxisRaw("Vertical");
-			float barHeight = (0.03f * barForceInMilliNewton - 0.1f)/6;
+		    barForceInMilliNewton = (float)Convert.ToInt32(stringData);
+			//float v = Input.GetAxisRaw("Vertical");
+			//float barHeight = (0.03f * barForceInMilliNewton - 0.1f)/3.9f;    //3 5 6
+			float barHeight = 0.005f * barForceInMilliNewton;                   // H = 2*F      F-(Newton)
 			GetComponent<Rigidbody2D>().position = new Vector2(0, barHeight);
             //obj.transform.position = new Vector2(0, barHeight);
 
 
-            listToHoldData.Add(barForceInMilliNewton);
-			//float t = Time.time;
-			listToHoldTime.Add(Time.time);
-			//Vector2 mousePosition = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
-			//GetComponent<Rigidbody2D>().position = new Vector2(0, mousePosition.y);
-			listToHoldID.Add(IDrecord);
+			if(TargetRacket_force.destroy_mark == false)
+			{
+				Levels[(int)IDrecord].allList(Time.time, barForceInMilliNewton, IDrecord, barHeight, collisionrecord2, IDframe);
 
+			}
+
+			//if (barHeight <= 0.06f)
+			//{
+			//	isShow = true;
+			//}
+			//else
+			//{
+			//	isShow = false;
+			//}
 
 		}
 
@@ -103,51 +119,37 @@ public class MoveRacket_force : MonoBehaviour
     private void OnApplicationQuit()
     {
 
-
-        //string data = "";
-        //StreamWriter writer = new StreamWriter("test.csv", false, Encoding.UTF8);
-
-        //foreach (float eachBarHeight in listToHoldData)
-        //{
-        //    data += eachBarHeight.ToString();
-        //    data += "\n";
-        //}
-
-        //writer.Write(data);
-
-        //writer.Close();
+		SaveCSV.createfile();
+		//for (int n = 0; n < levelcount; n++)
+		//{
+		//    //// 将listToHoldTime列表的每一个值都减去此列表的第一个值
+		//  //  List<float> AdjustIDtime = Levels[n].listToHoldTime;
 
 
-        string data = "";
-        StreamWriter writer = new StreamWriter("force_test.csv", false, Encoding.UTF8);
-                  
-		writer.WriteLine(string.Format("{0},{1},{2}", "Time","Pressure", "ID"));
+		//    for (int m = 0; m < Levels[n].listToHoldTime.Count; m++)
+		//    {
+		//        FromZeroIDtime.Add(Levels[n].listToHoldTime[m] - Levels[n].listToHoldTime[0]);
 
-        
-        using (var e1 = listToHoldTime.GetEnumerator())
-        using (var e2 = listToHoldData.GetEnumerator())
-		using (var e3 = listToHoldID.GetEnumerator())
-        {
-			while (e1.MoveNext() && e2.MoveNext()&& e3.MoveNext())
-            {
-                var item1 = e1.Current;
-                var item2 = e2.Current;
-				var item3 = e3.Current;
-
-                data += item1.ToString();
-                data += ",";
-				data += item2.ToString();
-				data += ",";
-                data += item3.ToString();
-                data += "\n";
-                // use item1 and item2
-            }
-        }
+		//    }
+		//    SaveCSV.savedata("Force_bar" + n.ToString() + ".csv", FromZeroIDtime, Levels[n].listToHoldData, Levels[n].listToHoldID, Levels[n].listToHoldBarHeight, Levels[n].listToHoldtimeflag);
+		//}
 
 
-        writer.Write(data);
+		for (int n = 0; n < levelcount; n++)
+		{
+			SaveCSV.savedata("Force_bar" + n.ToString() + ".csv", Levels[n].listToHoldTime, Levels[n].listToHoldData, Levels[n].listToHoldID, Levels[n].listToHoldBarHeight, Levels[n].listToHoldcollision2, Levels[n].listToHoldtimeflag);
 
-        writer.Close();
-    }
+		}
+			
+
+	}
+	//显示已恢复原位
+	//private void OnGUI()
+	//{
+	//    if (isShow)
+	//    {
+	//       GUI.Label(new Rect(Screen.width * 0.68f, Screen.height * 0.45f, 200, 30), "已恢复原位");
+	//    }
+	//}
 
 }

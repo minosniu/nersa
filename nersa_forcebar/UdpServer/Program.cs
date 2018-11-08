@@ -73,7 +73,7 @@ namespace UDP
             Console.WriteLine(Encoding.ASCII.GetString(data, 0, recv));
 
             //客户机连接成功后，发送信息
-            string welcome = " M ";
+            string welcome = "你好 ! ";
 
             //字符串与字节数组相互转换
             data = Encoding.ASCII.GetBytes(welcome);
@@ -93,8 +93,9 @@ namespace UDP
             int Chan = 0;     //输入通道编号
             int Options = 0;
 
+            string s = "";
             string filename = "test.csv";
-            File.WriteAllText(filename, "");
+            File.WriteAllText(filename, s);
 
             while (true)
             {
@@ -106,15 +107,17 @@ namespace UDP
                 ULStat = DaqBoard.AIn(Chan, Range, out DataValue);//读取输入通道，输出16位整数值
                 //  Convert raw data to Volts by calling ToEngUnits
                 //  (member function of MccBoard class)
-                ULStat = DaqBoard.ToEngUnits(Range, DataValue, out EngUnits);//将原始数据转换成电压
+                ULStat = DaqBoard.ToEngUnits(Range, DataValue, out EngUnits);//将原始数据转换成电压       
 
                 //int barHeight = (int)Math.Ceiling(EngUnits * 1000 + 150);
-                int barForceInMilliNewton   = (int)Math.Ceiling(EngUnits * 1524 - 69.6);
+                int barForceInMilliNewton   = (int)Math.Ceiling(EngUnits *12000);                //v=2*EngUnits(电压值等于2倍EngUnits)
 
                 newsock.SendTo(Encoding.ASCII.GetBytes(barForceInMilliNewton.ToString()), Remote);
                                             
-                string s = EngUnits.ToString();
-                s += "\n";
+                s += EngUnits.ToString();
+                s += ",";              //change column
+                s += barForceInMilliNewton.ToString();
+                s += "\n";             //changge row
                 File.AppendAllText(filename, s);
 
             }

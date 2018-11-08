@@ -106,7 +106,7 @@ public class CSVHelper : MonoBehaviour
 #elif UNITY_IPHONE
 			Application.dataPath + "/Raw/";
 #elif UNITY_STANDALONE_WIN || UNITY_EDITOR
-            "file://" + "D:\\Luoqi\\Code\\local_nersa\\nersa_common\\Config\\";  
+		"file://" + "D:\\Luoqi\\Code\\local_nersa\\nersa_common\\Config\\"; 
 #else
 			string.Empty;
 #endif

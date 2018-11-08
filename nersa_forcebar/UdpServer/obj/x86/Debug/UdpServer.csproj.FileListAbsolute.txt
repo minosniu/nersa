@@ -63,3 +63,17 @@ D:\Luoqi\Code\local_nersa\nersa_forcebar\UdpServer\bin\Debug\UdpServer.pdb
 D:\Luoqi\Code\local_nersa\nersa_forcebar\UdpServer\bin\Debug\MccDaq.dll
 D:\Luoqi\Code\local_nersa\nersa_forcebar\UdpServer\bin\Debug\MccDaq.xml
 D:\Luoqi\Code\local_nersa\nersa_forcebar\UdpServer\obj\x86\Debug\UdpServer.csprojResolveAssemblyReference.cache
+D:\Luoqi\Code\111local_nersa\nersa_forcebar\UdpServer\obj\x86\Debug\UdpServer.exe
+D:\Luoqi\Code\111local_nersa\nersa_forcebar\UdpServer\obj\x86\Debug\UdpServer.pdb
+D:\Luoqi\Code\111local_nersa\nersa_forcebar\UdpServer\bin\Debug\UdpServer.exe
+D:\Luoqi\Code\111local_nersa\nersa_forcebar\UdpServer\bin\Debug\UdpServer.pdb
+D:\Luoqi\Code\111local_nersa\nersa_forcebar\UdpServer\bin\Debug\MccDaq.dll
+D:\Luoqi\Code\111local_nersa\nersa_forcebar\UdpServer\bin\Debug\MccDaq.xml
+D:\Luoqi\Code\111local_nersa\nersa_forcebar\UdpServer\obj\x86\Debug\UdpServer.csprojResolveAssemblyReference.cache
+D:\Luoqi\Code\no_neuromorphic_current_version\nersa_forcebar\UdpServer\obj\x86\Debug\UdpServer.exe
+D:\Luoqi\Code\no_neuromorphic_current_version\nersa_forcebar\UdpServer\obj\x86\Debug\UdpServer.pdb
+D:\Luoqi\Code\no_neuromorphic_current_version\nersa_forcebar\UdpServer\bin\Debug\UdpServer.exe
+D:\Luoqi\Code\no_neuromorphic_current_version\nersa_forcebar\UdpServer\bin\Debug\UdpServer.pdb
+D:\Luoqi\Code\no_neuromorphic_current_version\nersa_forcebar\UdpServer\bin\Debug\MccDaq.dll
+D:\Luoqi\Code\no_neuromorphic_current_version\nersa_forcebar\UdpServer\bin\Debug\MccDaq.xml
+D:\Luoqi\Code\no_neuromorphic_current_version\nersa_forcebar\UdpServer\obj\x86\Debug\UdpServer.csprojResolveAssemblyReference.cache

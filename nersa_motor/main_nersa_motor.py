@@ -22,7 +22,7 @@ elif nanotec_mode == "torque":
     node.sdo[0x2300].raw = 0
     node.sdo[0x6060].raw = 4  # 4-Torque mode
     node.sdo[0x203B][0x01].raw = 1200  # Maximum torque current
-    node.sdo[0x6071].raw = 1000
+    node.sdo[0x6071].raw = -1000
     node.sdo[0x6072].raw = 1000
     node.sdo[0x6087].raw = 500   #Torque acceleration
     node.sdo[0x6040].raw = 6
@@ -48,19 +48,21 @@ class MyUDPHandler(socketserver.BaseRequestHandler):
                 
                     
         clientInput = float(req)
-        force = round(0 + 15 * clientInput)
+        force = round(0 + 10 * clientInput)    #10
 #        force = max(0, round(-100 + 1000 * clientInput))
-               
-        if force > 1000:
-           force = 1000
-                    
-        velocity = round(50 + 500 * clientInput)
-        print(force)
+        
+        if force > 980:
+          force = 980;
+                     
+        velocity = round(50 + 500 * clientInput)               
+
         
         if nanotec_mode == "velocity":
             node.sdo[0x6042].raw = velocity
         elif nanotec_mode == "torque": 
             node.sdo[0x2031].raw = force #Target torque current
+            
+            print(force)   
         
         
 if __name__ == "__main__":
