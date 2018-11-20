@@ -28,6 +28,7 @@ public class MoveRacket_force : MonoBehaviour
     public Renderer rend;
 
 	private float IDrecord;
+	private float collisionrecord1;  //  bool
 	private float collisionrecord2;  //  bool
 	public int levelcount;
 	AllList[] Levels;
@@ -75,7 +76,7 @@ public class MoveRacket_force : MonoBehaviour
     {
 		
 		IDrecord = TargetRacket_force.ID;
-		//collisionrecord = TargetRacket_force.collision;
+		collisionrecord1 = TargetRacket_force.collision1;
 		collisionrecord2 = Prohibited_area.collision2;
 		IDframe = TargetRacket_force.time_flag;
 		//Debug.Log (IDrecord);
@@ -98,7 +99,7 @@ public class MoveRacket_force : MonoBehaviour
 
 			if(TargetRacket_force.destroy_mark == false)
 			{
-				Levels[(int)IDrecord].allList(Time.time, barForceInMilliNewton, IDrecord, barHeight, collisionrecord2, IDframe);
+				Levels[(int)IDrecord].allList(Time.time, barForceInMilliNewton, IDrecord, barHeight, collisionrecord1, collisionrecord2, IDframe);
 
 			}
 
@@ -137,7 +138,7 @@ public class MoveRacket_force : MonoBehaviour
 
 		for (int n = 0; n < levelcount; n++)
 		{
-			SaveCSV.savedata("Force_bar" + n.ToString() + ".csv", Levels[n].listToHoldTime, Levels[n].listToHoldData, Levels[n].listToHoldID, Levels[n].listToHoldBarHeight, Levels[n].listToHoldcollision2, Levels[n].listToHoldtimeflag);
+			SaveCSV.savedata("Force_bar" + n.ToString() + ".csv", Levels[n].listToHoldTime, Levels[n].listToHoldData, Levels[n].listToHoldID, Levels[n].listToHoldBarHeight,Levels[n].listToHoldcollision1, Levels[n].listToHoldcollision2, Levels[n].listToHoldtimeflag);
 
 		}
 			

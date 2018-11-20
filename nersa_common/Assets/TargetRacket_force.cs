@@ -8,7 +8,7 @@ public class TargetRacket_force : MonoBehaviour
 	private float[,] trial = new float[100, 10];
 	public static int count = 0;
 	private int counttmp = 20;
-	public static bool collision = false;   
+	public static float collision1 = 0;   //public static bool collision1 = false
 	public static bool temp = true;
 	private int flag = 0;
 	public static int time_flag = 0;   //存储每次ID用到的总的帧数
@@ -105,7 +105,7 @@ public class TargetRacket_force : MonoBehaviour
 
 			ID = float.Parse(GetDataByIdAndName(count, "id"));
 
-			if (collision)
+			if (collision1 == 1)      //if (collision1)  
 			{
 				flag++;
 
@@ -153,7 +153,7 @@ public class TargetRacket_force : MonoBehaviour
 		if (col.gameObject.name == "MoveRacket_force")
 		{
 			rend.material.color = Color.red;
-			collision = true;
+			collision1 = 1;    //true-1
 		}
 
 	}
@@ -164,7 +164,7 @@ public class TargetRacket_force : MonoBehaviour
 			//if (count % 2 == 0) { rend.material.color = Color.green; }
 			//if (count % 2 != 0) { rend.material.color = Color.blue; }
 			rend.material.color = Color.green;
-			collision = false;
+			collision1 = 0;  //false-0
 		}
 	}
 
