@@ -43,7 +43,10 @@ class MyUDPHandler(socketserver.BaseRequestHandler):
 #        print("{} wrote:".format(self.client_address[0]))
 #        print(req)
                 
-        replyMsg = str.encode(str("0"))
+        displacement = node.sdo[0x6064].raw  #current displacemnt          
+        print(displacement)
+        
+        replyMsg = str.encode(str(displacement))
         socket.sendto(replyMsg, self.client_address)
                 
                     
@@ -62,7 +65,9 @@ class MyUDPHandler(socketserver.BaseRequestHandler):
         elif nanotec_mode == "torque": 
             node.sdo[0x2031].raw = force #Target torque current
             
-            print(force)   
+#            print(force)
+            
+
         
         
 if __name__ == "__main__":
