@@ -1,5 +1,6 @@
 import socketserver
 import canopen
+import math
 
 # Initialize Nanotec CANopen
 network = canopen.Network()
@@ -22,12 +23,15 @@ elif nanotec_mode == "torque":
     node.sdo[0x2300].raw = 0
     node.sdo[0x6060].raw = 4  # 4-Torque mode
     node.sdo[0x203B][0x01].raw = 1200  # Maximum torque current
-    node.sdo[0x6071].raw = 1000
+    node.sdo[0x6071].raw = 1000    #正反转
     node.sdo[0x6072].raw = 1000
     node.sdo[0x6087].raw = 500   #Torque acceleration
     node.sdo[0x6040].raw = 6
     node.sdo[0x6040].raw = 7
     node.sdo[0x6040].raw = 15
+    
+    
+P_initial = 1455 #2275        # P_max = 2650 4275  最大脉冲数2的32次方，当前抓握最大脉冲数4275
 
 class MyUDPHandler(socketserver.BaseRequestHandler):
     """
@@ -43,19 +47,25 @@ class MyUDPHandler(socketserver.BaseRequestHandler):
 #        print("{} wrote:".format(self.client_address[0]))
 #        print(req)
                 
-        displacement = node.sdo[0x6064].raw  #current displacemnt          
-        print(displacement)
-        
-        replyMsg = str.encode(str(displacement))
-        socket.sendto(replyMsg, self.client_address)
                 
+        P_current = node.sdo[0x6064].raw   #脉冲数P/2000 = 圈数n   motor displacement
+        print(P_current)
+        
+#        angle = (P_current - P_initial)*2*math.pi/2000 
+        angle = max(0, round((P_current - P_initial)*2*math.pi/2000))
+        lce = 1.9 - angle/(2*math.pi)                    #转换到1~2之间
+                     
+        replyMsg = str.encode(str(lce))
+        socket.sendto(replyMsg, self.client_address)
+        
+        
                     
         clientInput = float(req)
         force = round(0 + 10 * clientInput)    #10
 #        force = max(0, round(-100 + 1000 * clientInput))
         
-        if force > 980:
-          force = 980;
+        if force > 1200:
+          force = 1200;
                      
         velocity = round(50 + 500 * clientInput)               
 
@@ -65,7 +75,7 @@ class MyUDPHandler(socketserver.BaseRequestHandler):
         elif nanotec_mode == "torque": 
             node.sdo[0x2031].raw = force #Target torque current
             
-#            print(force)
+            print(force)
             
 
         

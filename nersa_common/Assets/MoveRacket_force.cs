@@ -92,7 +92,7 @@ public class MoveRacket_force : MonoBehaviour
 		    barForceInMilliNewton = (float)Convert.ToInt32(stringData);
 			//float v = Input.GetAxisRaw("Vertical");
 			//float barHeight = (0.03f * barForceInMilliNewton - 0.1f)/3.9f;    //3 5 6
-			float barHeight = 0.005f * barForceInMilliNewton;                   // H = 2*F      F-(Newton)
+			float barHeight = 0.008f * barForceInMilliNewton;                   //      F-(Newton)
 			GetComponent<Rigidbody2D>().position = new Vector2(0, barHeight);
             //obj.transform.position = new Vector2(0, barHeight);
 

@@ -15,31 +15,43 @@ using System.Threading.Tasks;
 
 public class MoveRacket : MonoBehaviour
 {
-	public InputField inputvariate1;
-	public InputField inputvariate2;
+    public InputField inputvariate1;
+    public InputField inputvariate2;
     public float speed = 30;
-	public float input1 = 20;      
-	public float input2 = -1;     //给input1、input2设定初始值
+    public float input1 = 20;
+    public float input2 = 0;     //给input1、input2设定初始值
+    //int count = 0;
 
-    byte[] data1 = new byte[1024];
 
-    Socket server1 = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);  //实现 Berkeley 套接字接口
-    public IPEndPoint sender1 = new IPEndPoint(IPAddress.Any, 0);  //定义服务端
+    //Socket server1 = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);  //实现 Berkeley 套接字接口
+    //public IPEndPoint sender1 = new IPEndPoint(IPAddress.Any, 0);  //定义服务端
 
-    UdpClient nanoTecClient = new UdpClient();
+    UdpClient nanoTecClient = new UdpClient();         // nanotec motor
     //IPEndPoint object will allow us to read datagrams sent from any source.
-    IPEndPoint RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
+    IPEndPoint RemoteIpEndPoint1 = new IPEndPoint(IPAddress.Any, 0);
+
+    UdpClient neuromorphicClient = new UdpClient();     //neuromorphic system
+    IPEndPoint RemoteIpEndPoint2 = new IPEndPoint(IPAddress.Any, 0);
 
     EndPoint Remote1;
+    EndPoint Remote2;
 
-    int recv1;
+    //float emg_neuromorphic = 0.0f;
+    float muscle_force = 0.0f;
+    int n = 0;
+    double Lce = 0;
+    float Lce1 = 0.0f;
+
+
+    //int recv1;
     float init_data = 0.0f;
     float emgfilter = 0.0f;
     float bayesfilter = 0.0f;
-	float emg_send = 0.0f;
+    float emg_send = 0.0f;
+    float emg_neuromorphic = 0.0f;
 
     static readonly object lockObject = new object();
-    string stringData = "0";
+    bool precessData = false;
 
     EmgModule myEmg = new EmgModule();
     BayesFilter myBayesian = new BayesFilter();
@@ -49,12 +61,15 @@ public class MoveRacket : MonoBehaviour
     public Renderer rend;
 
 
-	List<float> listToHoldemg_send;
+    List<float> listToHoldemg_send;
     List<float> listToHoldTime;
     List<float> listToHoldInit;
     List<float> listToHoldemgfilter;
     List<float> listToHoldbayesfilter;
     List<float> listToHoldstoredata;
+
+    List<double> listToHoldLce;
+    List<float> listToHoldmuscle_force;
 
 
     float[] a1 = { 1f, 1.7600f, 1.1829f, 0.2781f };
@@ -76,7 +91,7 @@ public class MoveRacket : MonoBehaviour
     float[] aa = new float[10];      //均值滤波阶数（oder）-10阶
 
     //float[] save = new float[100];
-    
+
 
 
 
@@ -87,6 +102,7 @@ public class MoveRacket : MonoBehaviour
         try
         {
             nanoTecClient.Connect("127.0.0.1", 20001);
+            neuromorphicClient.Connect("192.168.0.100", 5000);
         }
 
         catch (Exception e)
@@ -94,12 +110,15 @@ public class MoveRacket : MonoBehaviour
             Console.WriteLine(e.ToString());
         }
 
-		listToHoldemg_send = new List<float>();
+        listToHoldemg_send = new List<float>();
         listToHoldTime = new List<float>();
         listToHoldInit = new List<float>();
         listToHoldemgfilter = new List<float>();
         listToHoldbayesfilter = new List<float>();
         listToHoldstoredata = new List<float>();
+
+        listToHoldLce = new List<double>();
+        listToHoldmuscle_force = new List<float>();
 
         obj = GameObject.Find("MoveRacket");
 
@@ -165,9 +184,9 @@ public class MoveRacket : MonoBehaviour
                 break;
 
             case "sim":
-                chemg =(float) mySimulator.storedata();
-                break; 
-            
+                chemg = (float)mySimulator.storedata();
+                break;
+
             default:
                 chemg = 0;
                 break;
@@ -178,75 +197,117 @@ public class MoveRacket : MonoBehaviour
 
 
 
-    void FixedUpdate()
+    void FixedUpdate()         // 设为0.01s
     {
-		if (TestClick.flag) {
-			
-			if (EnterClick.verify) {
-				input1 = float.Parse(inputvariate1.text);    // string to float(字符串转浮点型)
-				input2 = float.Parse(inputvariate2.text);
-				EnterClick.verify = false;
-			}
-			//print (input1);
-			//print (input2);
+        if (TestClick.flag)
+        {
+
+            if (EnterClick.verify)
+            {
+                input1 = float.Parse(inputvariate1.text);    // string to float(字符串转浮点型)
+                input2 = float.Parse(inputvariate2.text);
+                EnterClick.verify = false;
+            }
+            //print (input1);
+            //print (input2);
 
 
-			//print ("emg");
-			init_data = ChooseMode("real");
+            //print ("emg");
+            init_data = ChooseMode("real");
 
-			if (init_data == 0)
-				bayesfilter = 0;
-			else
-				//bayesfilter = (float)(myBayesian.UpdateEst(init_data / 100));
-			{
-				bayesfilter = (float)(myBayesian.UpdateEst(init_data * 80000 / 100));//200    0-1
-				//bayesfilter = Mathf.Max(0,(float)(myBayesian.UpdateEst(init_data * 80000 / input1)) + input2);// 200    0-1
-				emg_send = Mathf.Max(0, bayesfilter * input1 + input2);
-				init_data = init_data * 80000;
-			}
+            if (init_data == 0)
+                bayesfilter = 0;
+            else
+            //bayesfilter = (float)(myBayesian.UpdateEst(init_data / 100));
+            {
+                bayesfilter = (float)(myBayesian.UpdateEst(init_data * 80000 / 100));//200    0-1
+                                                                                     //bayesfilter = Mathf.Max(0,(float)(myBayesian.UpdateEst(init_data * 80000 / input1)) + input2);// 200    0-1
+                emg_send = Mathf.Max(0, bayesfilter * input1 + input2);
+                init_data = init_data * 80000;
+            }
 
-			//emgfilter = EmgAverage(10, Math.Abs(myEmg.emgData[0]));
+            //emgfilter = EmgAverage(10, Math.Abs(myEmg.emgData[0]));
 
-			//emgfilter = EmgFilter(myEmg.emgData[0]);
-			emgfilter = EmgFilter(init_data);
-			emgfilter = emgfilter * 50000;
-
-			try
-			{
-				// Sends a message to the host to which you have connected.
-				Byte[] sendBytes = Encoding.ASCII.GetBytes(emg_send.ToString());
-
-				nanoTecClient.Send(sendBytes, sendBytes.Length);
-
-				// Blocks until a message returns on this socket from a remote host.
-				Byte[] receiveBytes = nanoTecClient.Receive(ref RemoteIpEndPoint);
-				string stringData = Encoding.ASCII.GetString(receiveBytes);      
-
-			}
-
-			catch (Exception e)
-			{
-				Console.WriteLine(e.ToString());
-			}
+            //emgfilter = EmgFilter(myEmg.emgData[0]);
+            emgfilter = EmgFilter(init_data);
+            emgfilter = emgfilter * 50000;
 
 
-			//float barHeight = bayesfilter * input1 + input2;	//EMG信号条零点位置设置  
-			GetComponent<Rigidbody2D>().position = new Vector2(20, emg_send);
+            //for (double Lce = 1.0; Lce < 2.0; Lce += 0.01)
+            try
+            {
+                //Lce = Math.Sin(n * Math.PI / 180);    // n= angle
+                //n++;
+                //Lce = Math.Abs(Lce) + 1;
+                //float Lce1 = (float)Lce;   
 
-			//obj.transform.position = new Vector2(0, barHeight);
-			//print(barHeight * 1000000);
+                // Sends a message to the host to which you have connected.
+                Byte[] sendBytes = Encoding.ASCII.GetBytes(emg_send.ToString());
+                Byte[] sendBytes1 = Encoding.ASCII.GetBytes(emg_neuromorphic.ToString());
+                Byte[] sendBytes2 = Encoding.ASCII.GetBytes(Lce.ToString());
 
-			listToHoldemg_send.Add(emg_send);
-			//float t = Time.time;
-			listToHoldTime.Add(Time.time);
 
-			listToHoldInit.Add(init_data);
-			listToHoldemgfilter.Add(emgfilter);
-			listToHoldbayesfilter.Add(bayesfilter);
-			listToHoldstoredata.Add(init_data);
-			//Vector2 mousePosition = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
-			//GetComponent<Rigidbody2D>().position = new Vector2(0, mousePosition.y);
-		}
+                neuromorphicClient.Send(sendBytes2, sendBytes2.Length);  //send motor displacement to neuromorphic system
+
+
+                if (NeuromorphicClick.enter_neuromorphic)
+                {
+
+                    nanoTecClient.Send(sendBytes1, sendBytes1.Length);    //send EMG + muscle force to nanotec motor
+
+                }
+
+                else
+                {
+                    nanoTecClient.Send(sendBytes, sendBytes.Length);  //send EMG to nanotec motor
+                }
+
+
+                // Blocks until a message returns on this socket from a remote host.
+                Byte[] receiveBytes1 = nanoTecClient.Receive(ref RemoteIpEndPoint1);
+                Byte[] receiveBytes2 = neuromorphicClient.Receive(ref RemoteIpEndPoint2);
+
+                string recMsg1 = Encoding.ASCII.GetString(receiveBytes1);  //receive message from motor
+                Lce = float.Parse(recMsg1);
+
+
+                string recMsg2 = Encoding.ASCII.GetString(receiveBytes2);   //receive message from neuromorphic system
+                muscle_force = float.Parse(recMsg2);
+
+                emg_neuromorphic = emg_send + muscle_force/10;        //muscle_force*input1/10
+
+                //print(count++);
+
+            }
+
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+
+
+            //float barHeight = bayesfilter * input1 + input2;	//EMG信号条零点位置设置  
+            GetComponent<Rigidbody2D>().position = new Vector2(30, emg_send);
+
+            //obj.transform.position = new Vector2(0, barHeight);
+            //print(barHeight * 1000000);
+
+            listToHoldemg_send.Add(emg_send);
+            //float t = Time.time;
+            listToHoldTime.Add(Time.time);
+
+            listToHoldInit.Add(init_data);
+            listToHoldemgfilter.Add(emgfilter);
+            listToHoldbayesfilter.Add(bayesfilter);
+            listToHoldstoredata.Add(init_data);
+
+            listToHoldLce.Add(Lce);
+            listToHoldmuscle_force.Add(muscle_force);
+            //Vector2 mousePosition = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+            //GetComponent<Rigidbody2D>().position = new Vector2(0, mousePosition.y);
+
+
+        }
     }
 
 
@@ -259,70 +320,97 @@ public class MoveRacket : MonoBehaviour
         try
         {
             nanoTecClient.Close();
+            neuromorphicClient.Close();
         }
         catch (Exception e)
         {
             Console.WriteLine(e.ToString());
         }
 
-        string data = "";
-        StreamWriter writer = new StreamWriter("EMG_test.csv", false, Encoding.UTF8);
-		//writer.WriteLine(string.Format("{0},{1}", "Time", "BarHeight"));
-		writer.WriteLine(string.Format("{0},{1},{2},{3},{4}", "Time", "emg_send", "Init_data","EmgFilter","BayesFilter"));
+        //string data = "";
+        //StreamWriter writer = new StreamWriter("EMG_test.csv", false, Encoding.UTF8);
+        //writer.WriteLine(string.Format("{0},{1},{2},{3},{4}", "Time", "emg_send", "Init_data", "EmgFilter", "BayesFilter"));
+
+        //using (var e1 = listToHoldTime.GetEnumerator())
+        //using (var e2 = listToHoldemg_send.GetEnumerator())
+        //using (var e3 = listToHoldInit.GetEnumerator())
+        //using (var e4 = listToHoldemgfilter.GetEnumerator())
+        //using (var e5 = listToHoldbayesfilter.GetEnumerator())
+        //{
+        //    while (e1.MoveNext() && e2.MoveNext() && e3.MoveNext() && e4.MoveNext() && e5.MoveNext())
+        //    {
+        //        var item1 = e1.Current;
+        //        var item2 = e2.Current;
+        //        var item3 = e3.Current;
+        //        var item4 = e4.Current;
+        //        var item5 = e5.Current;
+        //        data += item1.ToString();
+        //        data += ",";
+        //        data += item2.ToString();
+        //        data += ",";
+        //        data += item3.ToString();
+        //        data += ",";
+        //        data += item4.ToString();
+        //        data += ",";
+        //        data += item5.ToString();
+        //        data += "\n";
+        //        // use item1 and item2
+        //    }
+        //}
+
+        //writer.Write(data);
+        //writer.Close();
+
+
+
+
+        //string store = "";
+        //StreamWriter writer1 = new StreamWriter("storedata.csv", false, Encoding.UTF8);
+
+        //using (var e1 = listToHoldstoredata.GetEnumerator())
+        //{
+        //    while (e1.MoveNext())
+        //    {
+        //        var item1 = e1.Current;
+
+        //        store += item1.ToString();
+
+        //        store += "\n";
+        //        // use item1 and item2
+        //    }
+        //}
+
+        //writer1.Write(store);
+        //writer1.Close();
+
+
+
+
+        string data2 = "";
+        StreamWriter writer2 = new StreamWriter("neuromorphicdata.csv", false, Encoding.UTF8);
+        writer2.WriteLine(string.Format("{0},{1},{2}", "Time", "Lce", "muscle_force"));
 
         using (var e1 = listToHoldTime.GetEnumerator())
-		using (var e2 = listToHoldemg_send.GetEnumerator())
-        using (var e3 = listToHoldInit.GetEnumerator())
-        using (var e4 = listToHoldemgfilter.GetEnumerator())
-        using (var e5 = listToHoldbayesfilter.GetEnumerator())
+        using (var e2 = listToHoldLce.GetEnumerator())
+        using (var e3 = listToHoldmuscle_force.GetEnumerator())
         {
-            while (e1.MoveNext() && e2.MoveNext() && e3.MoveNext() && e4.MoveNext() && e5.MoveNext())
+            while (e1.MoveNext() && e2.MoveNext() && e3.MoveNext())
             {
                 var item1 = e1.Current;
                 var item2 = e2.Current;
                 var item3 = e3.Current;
-                var item4 = e4.Current;
-                var item5 = e5.Current;
-                data += item1.ToString();
-                data += ",";
-                data += item2.ToString();
-                data += ",";
-                data += item3.ToString();
-                data += ",";
-                data += item4.ToString();
-                data += ",";
-                data += item5.ToString();
-                data += "\n";
-                // use item1 and item2
+
+                data2 += item1.ToString();
+                data2 += ",";
+                data2 += item2.ToString();
+                data2 += ",";
+                data2 += item3.ToString();
+                data2 += "\n";
             }
         }
 
-        writer.Write(data);
-
-        writer.Close();
-
-
-        string store = "";
-       
-        StreamWriter writer1 = new StreamWriter("storedata.csv", false, Encoding.UTF8);
-        //writer.WriteLine(string.Format("{0},{1}", "Time", "Pressure"));
-       
-        using (var e1 = listToHoldstoredata.GetEnumerator())
-        {
-            while (e1.MoveNext())
-            {
-                var item1 = e1.Current;
-           
-                store += item1.ToString();
-
-                store += "\n";
-                // use item1 and item2
-            }
-        }
-
-        writer1.Write(store);
-
-        writer1.Close();
+        writer2.Write(data2);
+        writer2.Close();
 
     }
 

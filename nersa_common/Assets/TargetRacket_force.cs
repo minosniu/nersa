@@ -11,7 +11,7 @@ public class TargetRacket_force : MonoBehaviour
 	public static float collision1 = 0;   //public static bool collision1 = false
 	public static bool temp = true;
 	private int flag = 0;
-	public static int time_flag = 0;   //存储每次ID用到的总的帧数
+	public static int time_flag = 0;
 	public static float ID = 0;
 
 	public static int levelnumber;
@@ -97,8 +97,12 @@ public class TargetRacket_force : MonoBehaviour
 		if (TestClick.flag)
 		{
 
-			//Debug.Log("哈哈");
-			time_flag++;
+			if (EnterClick.verify_flag) {
+				time_flag++;
+			}
+
+
+			//Debug.Log("time_flag"+time_flag);
 
 			obj.transform.localPosition = new Vector2(15, float.Parse(GetDataByIdAndName(count, "Distance")));  //x轴方向position(float.Parse将string强制转换成float)
 			obj.transform.localScale = new Vector2(26, float.Parse(GetDataByIdAndName(count, "Width")));     //x轴方向宽度

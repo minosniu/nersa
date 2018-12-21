@@ -9,7 +9,7 @@ public class AllList : MonoBehaviour {
     public  List<float> listToHoldBarHeight = new List<float>();
 	public  List<float> listToHoldcollision1 = new List<float>();
 	public  List<float> listToHoldcollision2 = new List<float>();
-    public List<int> listToHoldtimeflag = new List<int>();   //运行每个ID需要的总的帧数
+	public List<int> listToHoldtimeflag = new List<int>();   //运行每个ID需要的总的帧数
 
 
 	public void allList( float time, float barForceInMilliNewton, float IDrecord, float barHeight, float collisionrecord1, float collisionrecord2, int timeflag)
