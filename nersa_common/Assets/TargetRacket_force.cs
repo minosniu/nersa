@@ -7,7 +7,7 @@ public class TargetRacket_force : MonoBehaviour
 	private int sum;
 	private float[,] trial = new float[100, 10];
 	public static int count = 0;
-	private int counttmp = 20;
+	private int counttmp = 0;       // 第一个起始ID数据不需要，故不需弹出“开始”，定义counttmp=0；   若第一个ID需要弹出“开始”,定义counttmp=大于ID个数的数
 	public static float collision1 = 0;   //public static bool collision1 = false
 	public static bool temp = true;
 	private int flag = 0;
@@ -97,12 +97,11 @@ public class TargetRacket_force : MonoBehaviour
 		if (TestClick.flag)
 		{
 
-			if (EnterClick.verify_flag) {
-				time_flag++;
-			}
+//			if (EnterClick.verify_flag) {           
+//				time_flag++;
+//			}
 
-
-			//Debug.Log("time_flag"+time_flag);
+			time_flag++;
 
 			obj.transform.localPosition = new Vector2(15, float.Parse(GetDataByIdAndName(count, "Distance")));  //x轴方向position(float.Parse将string强制转换成float)
 			obj.transform.localScale = new Vector2(26, float.Parse(GetDataByIdAndName(count, "Width")));     //x轴方向宽度
@@ -180,10 +179,10 @@ public class TargetRacket_force : MonoBehaviour
 				
 				GUIStyle aa = new GUIStyle();
 				aa.normal.background = texture2D;
-				aa.normal.textColor = Color.red;   //设置字体颜色的
-				aa.fontSize = 100;       //当然，这是字体大小
+				aa.normal.textColor = Color.red;   //设置字体颜色
+				aa.fontSize = 200;       //这是字体大小
 				aa.alignment = TextAnchor.MiddleCenter;
-			    GUI.Button (new Rect (Screen.width * 0.34f, Screen.height * 0.4f, 500, 300), "开始", aa);					    
+			    GUI.Button (new Rect (Screen.width * 0.34f, Screen.height * 0.4f, 1500, -100), "开始", aa);					    
 			    
 			    StartCoroutine(Delay.run(() =>
 				{
@@ -198,10 +197,10 @@ public class TargetRacket_force : MonoBehaviour
 		{
 			GUIStyle bb = new GUIStyle();
 			bb.normal.background = texture2D;
-			bb.normal.textColor = Color.red;   //设置字体颜色的
-			bb.fontSize = 100;       //当然，这是字体大小
+			bb.normal.textColor = Color.red;   //设置字体颜色
+			bb.fontSize = 200;       //这是字体大小
 			bb.alignment = TextAnchor.MiddleCenter;
-			GUI.Button(new Rect(Screen.width * 0.34f, Screen.height * 0.4f, 500, 300), "请放手", bb);
+			GUI.Button(new Rect(Screen.width * 0.34f, Screen.height * 0.4f, 1500, -100), "请放手", bb);
 
 		}
 		//if (ishint)

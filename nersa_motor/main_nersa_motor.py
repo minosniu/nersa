@@ -23,7 +23,7 @@ elif nanotec_mode == "torque":
     node.sdo[0x2300].raw = 0
     node.sdo[0x6060].raw = 4  # 4-Torque mode
     node.sdo[0x203B][0x01].raw = 1200  # Maximum torque current
-    node.sdo[0x6071].raw = 1000    #正反转
+    node.sdo[0x6071].raw = 1000    #正反转  右手-逆时针-负号
     node.sdo[0x6072].raw = 1000
     node.sdo[0x6087].raw = 500   #Torque acceleration
     node.sdo[0x6040].raw = 6
@@ -31,7 +31,7 @@ elif nanotec_mode == "torque":
     node.sdo[0x6040].raw = 15
     
     
-P_initial = 1455 #2275        # P_max = 2650 4275  最大脉冲数2的32次方，当前抓握最大脉冲数4275
+P_initial = 200 #4700        # P_max = 2650 4275  最大脉冲数2的32次方，当前抓握最大脉冲数4275
 
 class MyUDPHandler(socketserver.BaseRequestHandler):
     """
@@ -64,8 +64,8 @@ class MyUDPHandler(socketserver.BaseRequestHandler):
         force = round(0 + 10 * clientInput)    #10
 #        force = max(0, round(-100 + 1000 * clientInput))
         
-        if force > 1200:
-          force = 1200;
+        if force > 1180:
+          force = 1180;
                      
         velocity = round(50 + 500 * clientInput)               
 

@@ -35,8 +35,9 @@ public class MoveRacket_force : MonoBehaviour
 	public List<float> FromZeroIDtime;
 	public int IDframe;
 	//public bool isShow;
-	public float barForceInMilliNewton;
-
+	public float barForceInMilliNewton;  
+	public float Lce_mo;
+	public float force_mo;
 
 	void CreateList(int n)
 	{
@@ -79,6 +80,8 @@ public class MoveRacket_force : MonoBehaviour
 		collisionrecord1 = TargetRacket_force.collision1;
 		collisionrecord2 = Prohibited_area.collision2;
 		IDframe = TargetRacket_force.time_flag;
+		Lce_mo = MoveRacket.Lce;
+	    force_mo = MoveRacket.muscle_force;
 		//Debug.Log (IDrecord);
 
 		if (TestClick.flag) {
@@ -99,7 +102,7 @@ public class MoveRacket_force : MonoBehaviour
 
 			if(TargetRacket_force.destroy_mark == false)
 			{
-				Levels[(int)IDrecord].allList(Time.time, barForceInMilliNewton, IDrecord, barHeight, collisionrecord1, collisionrecord2, IDframe);
+				Levels[(int)IDrecord].allList(Time.time, barForceInMilliNewton, IDrecord, barHeight, collisionrecord1, collisionrecord2, Lce_mo, force_mo, IDframe); 
 
 			}
 
@@ -138,7 +141,7 @@ public class MoveRacket_force : MonoBehaviour
 
 		for (int n = 0; n < levelcount; n++)
 		{
-			SaveCSV.savedata("Force_bar" + n.ToString() + ".csv", Levels[n].listToHoldTime, Levels[n].listToHoldData, Levels[n].listToHoldID, Levels[n].listToHoldBarHeight,Levels[n].listToHoldcollision1, Levels[n].listToHoldcollision2, Levels[n].listToHoldtimeflag);
+			SaveCSV.savedata("Force_bar" + n.ToString() + ".csv", Levels[n].listToHoldTime, Levels[n].listToHoldData, Levels[n].listToHoldID, Levels[n].listToHoldBarHeight,Levels[n].listToHoldcollision1, Levels[n].listToHoldcollision2, Levels[n].listToHoldLce, Levels[n].listToHoldmuscle_force, Levels[n].listToHoldtimeflag);  
 
 		}
 			
