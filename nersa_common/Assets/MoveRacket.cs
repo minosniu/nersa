@@ -116,7 +116,7 @@ public class MoveRacket : MonoBehaviour
         try
         {
             nanoTecClient.Connect("127.0.0.1", 20001);
-            neuromorphicClient.Connect("192.168.0.100", 5000);
+            neuromorphicClient.Connect("192.168.0.101", 5000);
         }
 
         catch (Exception e)
