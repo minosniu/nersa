@@ -110,7 +110,8 @@ namespace UDP
                 ULStat = DaqBoard.ToEngUnits(Range, DataValue, out EngUnits);//将原始数据转换成电压       
 
                 //int barHeight = (int)Math.Ceiling(EngUnits * 1000 + 150);
-                int barForceInMilliNewton = (int)Math.Ceiling(EngUnits * 12000);                //v=2*EngUnits(电压值等于2倍EngUnits)
+                //int barForceInMilliNewton = (int)Math.Ceiling(EngUnits * 12000);                //v=2*EngUnits(电压值等于2倍EngUnits)  Beam load pressure sensor
+                int barForceInMilliNewton = (int)Math.Ceiling((EngUnits + 0.1123) * 20000);                //Hand grip strength measurement transducer  
 
                 newsock.SendTo(Encoding.ASCII.GetBytes(barForceInMilliNewton.ToString()), Remote);
 

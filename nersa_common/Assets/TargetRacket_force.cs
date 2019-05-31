@@ -138,7 +138,7 @@ public class TargetRacket_force : MonoBehaviour
 							destroy_mark = true;
 						}
 
-					}, 3));
+					}, 5));
 			}
 
 

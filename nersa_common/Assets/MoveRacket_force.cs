@@ -95,8 +95,8 @@ public class MoveRacket_force : MonoBehaviour
 		    barForceInMilliNewton = (float)Convert.ToInt32(stringData);
 			//float v = Input.GetAxisRaw("Vertical");
 			//float barHeight = (0.03f * barForceInMilliNewton - 0.1f)/3.9f;    //3 5 6
-			float barHeight = 0.008f * barForceInMilliNewton;                   //F-(Newton)  Beam load pressure sensor
-//			float barHeight = 0.016f * barForceInMilliNewton;                   //F-(Newton)  Hand grip strength measurement transducer
+//			float barHeight = 0.008f * barForceInMilliNewton;                   //F-(Newton)  Beam load pressure sensor
+			float barHeight = 0.003f * barForceInMilliNewton;                   //F-(Newton)  Hand grip strength measurement transducer
 			GetComponent<Rigidbody2D>().position = new Vector2(0, barHeight);
             //obj.transform.position = new Vector2(0, barHeight);
 

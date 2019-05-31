@@ -22,7 +22,7 @@ if nanotec_mode == "velocity":
 elif nanotec_mode == "torque":
     node.sdo[0x2300].raw = 0
     node.sdo[0x6060].raw = 4  # 4-Torque mode
-    node.sdo[0x203B][0x01].raw = 1200  # Maximum torque current 1800
+    node.sdo[0x203B][0x01].raw = 1500  # Maximum torque current 1800
     node.sdo[0x6071].raw = 1000    #正反转  右手-逆时针-负号
     node.sdo[0x6072].raw = 1000
     node.sdo[0x6087].raw = 500   #Torque acceleration
@@ -31,7 +31,7 @@ elif nanotec_mode == "torque":
     node.sdo[0x6040].raw = 15
     
     
-P_initial = 1716 #4700        # P_max = 2650 4275  最大脉冲数2的32次方，当前抓握最大脉冲数4275
+P_initial = 1500 #4700        # P_max = 2650 4275  最大脉冲数2的32次方，当前抓握最大脉冲数4275
 
 class MyUDPHandler(socketserver.BaseRequestHandler):
     """
@@ -50,22 +50,22 @@ class MyUDPHandler(socketserver.BaseRequestHandler):
                 
         P_current = node.sdo[0x6064].raw   #脉冲数P/2000 = 圈数n   motor displacement
         print(P_current)
-        
-#        angle = (P_current - P_initial)*2*math.pi/2000 
-        angle = max(0, round((P_current - P_initial)*2*math.pi/2000))
-        lce = 1.9 - angle/(2*math.pi)                    #转换到1~2之间
-                     
+           
+#        angle = max(0, round((P_current - P_initial)*2*math.pi/2000))   
+#        lce = round(1.9 - angle/(2*math.pi))   
+        angle = max(0, (P_current - P_initial)*2*math.pi/2000)    #转换到1~2之间   经测试五指抓握时，电机最大转1圈-2pi                
+        lce = max(0, 1.9 - angle/(2*math.pi))                #转换到1~2之间         
+            
         replyMsg = str.encode(str(lce))
         socket.sendto(replyMsg, self.client_address)
         
-        
-                    
+                          
         clientInput = float(req)
-        force = round(0 + 10 * clientInput)    #10
+        force = round(0 + 50 * clientInput)    #10   50
 #        force = max(0, round(-100 + 1000 * clientInput))
         
-        if force > 1180:
-          force = 1180;
+        if force > 1480:
+           force = 1480;
                      
         velocity = round(50 + 500 * clientInput)               
 
