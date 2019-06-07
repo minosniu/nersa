@@ -31,7 +31,7 @@ elif nanotec_mode == "torque":
     node.sdo[0x6040].raw = 15
     
     
-P_initial = 1500 #4700        # P_max = 2650 4275  最大脉冲数2的32次方，当前抓握最大脉冲数4275
+P_initial = 2000 #4700        # P_max = 2650 4275  最大脉冲数2的32次方，当前抓握最大脉冲数4275
 
 class MyUDPHandler(socketserver.BaseRequestHandler):
     """
@@ -61,7 +61,7 @@ class MyUDPHandler(socketserver.BaseRequestHandler):
         
                           
         clientInput = float(req)
-        force = round(0 + 50 * clientInput)    #10   50
+        force = round(0 + 30 * clientInput)    #10   50
 #        force = max(0, round(-100 + 1000 * clientInput))
         
         if force > 1480:
